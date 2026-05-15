@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>牵牛花的奇幻旅程 - 短视频配对</title>
+    <style>
+        :root {
+            --wall-color: #d2b48c;
+            --leaf-green: #7fb069;
+            --flower-purple: #a18cd1;
+            --text-brown: #5d4037;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f5dc;
+            background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png'); /* 旧墙纸质感 */
+            color: var(--text-brown);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 顶部装饰 */
+        .header {
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            background: linear-gradient(to bottom, #a8e6cf, transparent);
+            position: relative;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            text-shadow: 1px 1px 2px white;
+        }
+
+        /* 积分板 */
+        .scoreboard {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            padding: 10px 20px;
+            margin: 10px;
+            border: 2px solid var(--leaf-green);
+            font-weight: bold;
+        }
+
+        /* 核心卡片容器 */
+        .game-container {
+            width: 90%;
+            max-width: 400px;
+            background: #fffaf0;
+            border: 8px solid var(--wall-color);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        /* 视频样式 */
+        .video-box {
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 16 / 9;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 下拉菜单 */
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        select {
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid var(--flower-purple);
+            font-size: 1rem;
+            background: white;
+            color: var(--text-brown);
+        }
+
+        button {
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            background: var(--leaf-green);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* 反馈信息 */
+        #feedback {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            height: 24px;
+        }
+
+        /* 等级显示 */
+        .rank-display {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* 装饰元素 */
+        .decoration {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 80px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0 20 Q 25 0 50 20 T 100 20" fill="%237fb069"/></svg>');
+            background-repeat: repeat-x;
+            z-index: -1;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🌿 牵牛花成长日记</h1>
+        <div class="rank-display" id="rank-text">当前等级：初露头角</div>
+    </div>
+
+    <div class="scoreboard">
+        得分：<span id="score">0</span> | 进度：<span id="progress">1</span>/21
+    </div>
+
+    <div class="game-container">
+        <div class="video-box">
+            <video id="video-player" controls>
+                <source src="V1.mp4" type="video/mp4">
+                您的浏览器不支持视频播放。
+            </video>
+        </div>
+
+        <div class="controls">
+            <select id="phrase-select">
+                <option value="">--- 请选择匹配的短语 ---</option>
+            </select>
+            <button onclick="checkAnswer()">提交答案</button>
+        </div>
+        <div id="feedback"></div>
+    </div>
+
+    <div class="decoration"></div>
+
+    <script>
+        const data = [
+            { id: 1, phrase: "某个村庄里", video: "V1.mp4" },
+            { id: 2, phrase: "一株牵牛花幼苗在阴暗潮湿的杂草丛", video: "V2.mp4" },
+            { id: 3, phrase: "叶色发黄、有气无力", video: "V3.mp4" },
+            { id: 4, phrase: "风在暴虐", video: "V4.mp4" },
+            { id: 5, phrase: "雨在嘶吼", video: "V5.mp4" },
+            { id: 6, phrase: "雷声隆隆，电光闪闪", video: "V6.mp4" },
+            { id: 7, phrase: "小牵牛花哆嗦着身子", video: "V7.mp4" },
+            { id: 8, phrase: "小树丫折断了", video: "V8.mp4" },
+            { id: 9, phrase: "牢牢地抱住小树", video: "V9.mp4" },
+            { id: 10, phrase: "入夜到黎明", video: "V10.mp4" },
+            { id: 11, phrase: "心力交瘁地睡着了", video: "V11.mp4" },
+            { id: 12, phrase: "天蒙蒙亮", video: "V12.mp4" },
+            { id: 13, phrase: "伸伸懒腰，没想到惊动了酣睡中的小牵牛花", video: "V13.mp4" },
+            { id: 14, phrase: "展开灿烂的笑容，脸上泛起红霞", video: "V14.mp4" },
+            { id: 15, phrase: "让我跨出杂草丛，看见更宽广的天空", video: "V15.mp4" },
+            { id: 16, phrase: "有一栋陈旧的古堡", video: "V16.mp4" },
+            { id: 17, phrase: "眼看就要坍塌地砖墙", video: "V17.mp4" },
+            { id: 18, phrase: "无可奈何地摇摇头", video: "V18.mp4" },
+            { id: 19, phrase: "夷为平地，重新规划和发展", video: "V19.mp4" },
+            { id: 20, phrase: "砖墙黯然神伤", video: "V20.mp4" },
+            { id: 21, phrase: "蔓生的牵牛花生机勃发，春意盎然", video: "V21.mp4" }
+        ];
+
+        let quizOrder = [];
+        let currentIndex = 0;
+        let score = 0;
+
+        const ranks = ["初露头角", "辛勤园丁", "枝繁叶茂", "繁花似锦", "生机勃发", "牵牛花大师"];
+
+        function initGame() {
+            // 打乱出题顺序
+            quizOrder = [...data].sort(() => Math.random() - 0.5);
+            currentIndex = 0;
+            score = 0;
+            updateScore();
+            
+            // 填充下拉列表（短语顺序也随机化，增加难度）
+            const select = document.getElementById('phrase-select');
+            const shuffledPhrases = [...data].sort(() => Math.random() - 0.5);
+            
+            shuffledPhrases.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.video;
+                opt.textContent = item.phrase;
+                select.appendChild(opt);
+            });
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentIndex >= quizOrder.length) {
+                showFinalResult();
+                return;
+            }
+            const currentItem = quizOrder[currentIndex];
+            const videoPlayer = document.getElementById('video-player');
+            videoPlayer.src = currentItem.video;
+            document.getElementById('progress').textContent = currentIndex + 1;
+            document.getElementById('phrase-select').value = "";
+            document.getElementById('feedback').textContent = "";
+        }
+
+        function checkAnswer() {
+            const select = document.getElementById('phrase-select');
+            const feedback = document.getElementById('feedback');
+            const currentItem = quizOrder[currentIndex];
+
+            if (select.value === "") {
+                alert("请先选择一个短语！");
+                return;
+            }
+
+            if (select.value === currentItem.video) {
+                score += 10;
+                feedback.innerHTML = "<span style='color: green;'>⭐ 太棒了！观察入微！</span>";
+                updateScore();
+                setTimeout(nextQuestion, 1500);
+            } else {
+                feedback.innerHTML = "<span style='color: red;'>❌ 再仔细观察一下视频哦。</span>";
+            }
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            loadQuestion();
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+            // 计算等级 (210分总分，分为6级)
+            let rankIndex = Math.floor(score / 40);
+            if (rankIndex > 5) rankIndex = 5;
+            document.getElementById('rank-text').textContent = "当前等级：" + ranks[rankIndex];
+        }
+
+        function showFinalResult() {
+            const container = document.querySelector('.game-container');
+            container.innerHTML = `
+                <div style="text-align:center; padding: 20px;">
+                    <h2>🎉 挑战完成！</h2>
+                    <p>你的最终得分是：<strong style="font-size: 2rem; color: var(--flower-purple);">${score}</strong></p>
+                    <p>获得称号：<strong>${document.getElementById('rank-text').textContent}</strong></p>
+                    <button onclick="location.reload()">重新开始</button>
+                </div>
+            `;
+        }
+
+        // 页面加载完成后启动
+        window.onload = initGame;
+    </script>
+</body>
+</html>
